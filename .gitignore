@@ -10,3 +10,11 @@
 *.lai
 *.la
 *.a
+
+# Compiled binary
+mjpg_streamer
+
+# CMake Files
+mjpg-streamer-experimental/plugins/*/build
+
+*.swp
