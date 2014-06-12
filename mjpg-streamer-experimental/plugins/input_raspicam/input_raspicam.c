@@ -129,7 +129,7 @@ int input_init(input_parameter *param, int plugin_no)
       {"height", required_argument, 0, 0},
       */
       {"r", required_argument, 0, 0},
-      {"resolution", required_argument, 0, 0}
+      {"resolution", required_argument, 0, 0},
       {"fps", required_argument, 0, 0},
       {"framerate", required_argument, 0, 0},
       {"sh", required_argument, 0, 0},
