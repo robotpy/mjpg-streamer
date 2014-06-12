@@ -122,10 +122,14 @@ int input_init(input_parameter *param, int plugin_no)
     static struct option long_options[] = {
       {"h", no_argument, 0, 0},
       {"help", no_argument, 0, 0},
+      /*
       {"x", required_argument, 0, 0},
       {"width", required_argument, 0, 0},
       {"y", required_argument, 0, 0},
       {"height", required_argument, 0, 0},
+      */
+      {"r", required_argument, 0, 0},
+      {"resolution", required_argument, 0, 0}
       {"fps", required_argument, 0, 0},
       {"framerate", required_argument, 0, 0},
       {"sh", required_argument, 0, 0},
@@ -167,90 +171,97 @@ int input_init(input_parameter *param, int plugin_no)
         help();
         return 1;
         break;
-        /* width */
+      /*
+        // width
       case 2:
       case 3:
         DBG("case 2,3\n");
         width = atoi(optarg);
         break;
-        /* height */
+        // height
       case 4:
       case 5:
         DBG("case 4,5\n");
         height = atoi(optarg);
         break;
+      */
+        /* resolution */
+      case 2:
+      case 3:
+        sscanf(optarg, "%ix%i", &width, &height);
+        break;
         /* fps */
-      case 6:
-      case 7:
+      case 4:
+      case 5:
         DBG("case 6, 7\n");
         fps = atoi(optarg);
         break;
-      case 8:
+      case 6:
         //sharpness
         sscanf(optarg, "%d", &c_params.sharpness);
         break;
-      case 9:
+      case 7:
         //contrast
         sscanf(optarg, "%d", &c_params.contrast);
         break;
-      case 10:
+      case 8:
         //brightness
         sscanf(optarg, "%d", &c_params.brightness);
         break;
-      case 11:
+      case 9:
         //saturation
         sscanf(optarg, "%d", &c_params.saturation);
         break;
-      case 12:
+      case 10:
         //ISO
         sscanf(optarg, "%d", &c_params.ISO);
         break;
-      case 13:
+      case 11:
         //video stabilisation
         c_params.videoStabilisation = 1;
         break;
-      case 14:
+      case 12:
         //ev
         sscanf(optarg, "%d", &c_params.exposureCompensation);
         break;
-      case 15:
+      case 13:
         //exposure
         c_params.exposureMode = exposure_mode_from_string(optarg);
         break;
-      case 16:
+      case 14:
         //awb mode
         c_params.awbMode = awb_mode_from_string(optarg);
         break;
-      case 17:
+      case 15:
         //img effect
         c_params.imageEffect = imagefx_mode_from_string(optarg);
         break;
-      case 18:
+      case 16:
         //color effects
         sscanf(optarg, "%d:%d", &c_params.colourEffects.u, &c_params.colourEffects.u);
         c_params.colourEffects.enable = 1;
         break;
-      case 19:
+      case 17:
         //metering mode
         c_params.exposureMeterMode = metering_mode_from_string(optarg);
         break;
-      case 20:
+      case 18:
         //rotation
         sscanf(optarg, "%d", &c_params.rotation);
         break;
-      case 21:
+      case 19:
         //hflip
         c_params.hflip  = 1;
         break;
-      case 22:
+      case 20:
         //vflip
         c_params.vflip = 1;
         break;
-      case 23:
+      case 21:
         //quality
         quality = atoi(optarg);
         break;
-      case 24:
+      case 22:
         //use stills
         usestills = 1;
         break;
@@ -479,8 +490,9 @@ void help(void)
       " ---------------------------------------------------------------\n" \
       " The following parameters can be passed to this plugin:\n\n" \
       " [-fps | --framerate]...: set video framerate, default 1 frame/sec \n"\
-      " [-x | --width ]........: width of frame capture, default 640\n" \
-      " [-y | --height]....: height of frame capture, default 480 \n"\
+      //" [-x | --width ]........: width of frame capture, default 640\n" \
+      //" [-y | --height]....: height of frame capture, default 480 \n"\
+      " [-r | --resolution]....: set video resolution in WxH format \n"\
       " [-quality]....: set JPEG quality 0-100, default 85 \n"\
       " [-usestills]....: uses stills mode instead of video mode \n"\
 
