@@ -510,11 +510,11 @@ void *cam_thread(void *arg)
      */
 #ifndef NO_LIBJPEG
     if ((pcontext->videoIn->formatIn == V4L2_PIX_FMT_YUYV) || (pcontext->videoIn->formatIn == V4L2_PIX_FMT_RGB565)) {
-      DBG("compressing frame from input: %d\n", (int)pcontext->id);
+      // DBG("compressing frame from input: %d\n", (int)pcontext->id);
       pglobal->in[pcontext->id].size = compress_image_to_jpeg(pcontext->videoIn, pglobal->in[pcontext->id].buf, pcontext->videoIn->framesizeIn, gquality);
     } else {
 #endif
-      DBG("copying frame from input: %d\n", (int)pcontext->id);
+      // DBG("copying frame from input: %d\n", (int)pcontext->id);
       pglobal->in[pcontext->id].size = memcpy_picture(pglobal->in[pcontext->id].buf, pcontext->videoIn->tmpbuffer, pcontext->videoIn->buf.bytesused);
 #ifndef NO_LIBJPEG
     }
