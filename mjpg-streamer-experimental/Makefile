@@ -21,7 +21,7 @@ CFLAGS += $(SVNDEV)
 # general compile flags, enable all warnings to make compile more verbose
 CFLAGS += -DLINUX -D_GNU_SOURCE -Wall 
 CFLAGS += -g -Wuninitialized
-#CFLAGS +=  -DDEBUG
+CFLAGS += -DDEBUG
 
 # we are using the libraries "libpthread" and "libdl"
 # libpthread is used to run several tasks (virtually) in parallel
@@ -46,7 +46,7 @@ PLUGINS += output_http.so
 # PLUGINS += input_ptp2.so # commented out because it depends on libgphoto
 #PLUGINS += input_http.so 
 # PLUGINS += output_viewer.so # commented out because it depends on SDL
-PLUGINS += input_raspicam.so
+#PLUGINS += input_raspicam.so
 
 # define the names of object files
 OBJECTS=mjpg_streamer.o utils.o
