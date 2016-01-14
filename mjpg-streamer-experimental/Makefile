@@ -7,20 +7,30 @@
 #
 ###############################################################
 
+.PHONY: all application clean install make-install-dirs plugins tgz uninstall
+
 # specifies where to install the binaries after compilation
 # to use another directory you can specify it with:
 # $ sudo make DESTDIR=/some/path install
 DESTDIR = /usr/local
+ETCDIR = /etc
+
+BINDIR ?= 	 $(DESTDIR)/bin
+PLUGINDIR ?= $(DESTDIR)/lib/mjpg-streamer
+WWWDIR ?=    $(DESTDIR)/share/mjpg-streamer/www
+CONFDIR ?= 	 $(ETCDIR)/init.d
+DEFDIR ?=	 $(ETCDIR)/default
 
 # set the compiler to use
 CC = gcc
 
-SVNDEV := -D'SVN_REV="$(shell svnversion -c .)"'
+#SVNDEV := -D'SVN_REV="$(shell svnversion -c .)"'
+SVNDEV = -D'SVN_REV="2016.1.0"'
 CFLAGS += $(SVNDEV)
 
 # general compile flags, enable all warnings to make compile more verbose
-CFLAGS += -DLINUX -D_GNU_SOURCE -Wall 
-CFLAGS += -g -Wuninitialized
+CFLAGS += -DLINUX -D_GNU_SOURCE -Wall -O2
+CFLAGS += -Wuninitialized
 #CFLAGS +=  -DDEBUG
 
 # we are using the libraries "libpthread" and "libdl"
@@ -46,7 +56,7 @@ PLUGINS += output_rtsp.so
 # PLUGINS += input_ptp2.so # commented out because it depends on libgphoto
 #PLUGINS += input_http.so 
 # PLUGINS += output_viewer.so # commented out because it depends on SDL
-PLUGINS += input_raspicam.so
+#PLUGINS += input_raspicam.so
 
 # define the names of object files
 OBJECTS=mjpg_streamer.o utils.o
@@ -164,16 +174,33 @@ tgz: clean
 	mkdir -p backups
 	tar czvf ./backups/mjpg_streamer_`date +"%Y_%m_%d_%H.%M.%S"`.tgz --exclude backups --exclude .svn *
 
+
+BINDIR ?= 	 $(DESTDIR)/bin
+PLUGINDIR ?= $(DESTDIR)/lib/mjpg-streamer
+WWWDIR ?=    $(DESTDIR)/share/mjpg-streamer/www
+CONFDIR ?= 	 $(ETCDIR)/init.d
+DEFDIR ?=	 $(ETCDIR)/default
+
+make-install-dirs:
+	mkdir -p $(BINDIR)
+	mkdir -p $(PLUGINDIR)
+	mkdir -p $(WWWDIR)
+	mkdir -p $(CONFDIR)
+	mkdir -p $(DEFDIR)
+
 # install MJPG-streamer and example webpages
-install: all
-	install --mode=755 $(APP_BINARY) $(DESTDIR)/bin
-	install --mode=644 $(PLUGINS) $(DESTDIR)/lib/
-	install --mode=755 -d $(DESTDIR)/www
-	install --mode=644 -D www/* $(DESTDIR)/www
+install: all make-install-dirs
+	install --mode=755 $(APP_BINARY) $(BINDIR)
+	install --mode=644 $(PLUGINS) $(PLUGINDIR)
+	install --mode=755 -d $(WWWDIR)
+	install --mode=644 -D www/* $(WWWDIR)
+	install --mode=755 init/init.sh $(CONFDIR)/mjpg-streamer
+	[ -f $(ETCDIR)/default/mjpg-streamer ] || install --mode=755 init/default $(ETCDIR)/default/mjpg-streamer
 
 # remove the files installed above
 uninstall:
-	rm -f $(DESTDIR)/bin/$(APP_BINARY)
+	rm -f $(BINDIR)/$(APP_BINARY)
 	for plug in $(PLUGINS); do \
-	  rm -f $(DESTDIR)/lib/$$plug; \
+	  rm -f $(PLUGINDIR)/$$plug; \
 	done;
+	rm -f $(CONFDIR)/mjpg-streamer
