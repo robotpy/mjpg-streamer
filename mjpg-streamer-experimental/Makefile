@@ -25,7 +25,7 @@ DEFDIR ?=	 $(ETCDIR)/default
 CC = gcc
 
 #SVNDEV := -D'SVN_REV="$(shell svnversion -c .)"'
-SVNDEV = -D'SVN_REV="2016.1.0"'
+SVNDEV = -D'SVN_REV="2016.1.1"'
 CFLAGS += $(SVNDEV)
 
 # general compile flags, enable all warnings to make compile more verbose
@@ -196,11 +196,18 @@ install: all make-install-dirs
 	install --mode=644 -D www/* $(WWWDIR)
 	install --mode=755 init/init.sh $(CONFDIR)/mjpg-streamer
 	[ -f $(ETCDIR)/default/mjpg-streamer ] || install --mode=755 init/default $(ETCDIR)/default/mjpg-streamer
+	for i in `seq 1 4`; do \
+		install --mode=755 init/run.sh $(BINDIR)/$(APP_BINARY)_cfg$$i; \
+	done;
 
 # remove the files installed above
 uninstall:
 	rm -f $(BINDIR)/$(APP_BINARY)
+	for i in `seq 1 4`; do \
+		rm -f $(BINDIR)/$(APP_BINARY)_cfg$$i; \
+	done;
 	for plug in $(PLUGINS); do \
 	  rm -f $(PLUGINDIR)/$$plug; \
 	done;
 	rm -f $(CONFDIR)/mjpg-streamer
+	
