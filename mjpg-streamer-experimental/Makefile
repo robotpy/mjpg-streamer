@@ -25,7 +25,7 @@ DEFDIR ?=	 $(ETCDIR)/default
 CC = gcc
 
 #SVNDEV := -D'SVN_REV="$(shell svnversion -c .)"'
-SVNDEV = -D'SVN_REV="2016.1.1"'
+SVNDEV = -D'SVN_REV="2016.1.2"'
 CFLAGS += $(SVNDEV)
 
 # general compile flags, enable all warnings to make compile more verbose

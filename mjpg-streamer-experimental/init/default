@@ -26,6 +26,6 @@ FPS[2]=10
 RESOLUTION[2]="160x120"
 
 OUTPUT[2]="output_http.so -w /usr/local/share/mjpg-streamer/www"
-PORT[2]=5800
+PORT[2]=5801
 
 # And so on... up to 4 cameras (seriously?)
