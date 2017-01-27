@@ -2,7 +2,7 @@
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Required for old versions of cmake
-set(Python_ADDITIONAL_VERSIONS 3.4 3.5)
+set(Python_ADDITIONAL_VERSIONS 3.4 3.5 3.6)
 
 # find python and numpy
 find_package(PythonLibs)
