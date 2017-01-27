@@ -16,7 +16,7 @@ include(FeatureSummary)
 
 include(mjpg_streamer_utils)
 
-add_definitions(-DSVN_REV="2016.3.0")
+add_definitions(-DSVN_REV="2017.0.0")
 
 #
 # Options
