@@ -33,7 +33,6 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <syslog.h>
 #include <netdb.h>
 #include <errno.h>
 #include <limits.h>
@@ -435,6 +434,7 @@ void send_snapshot(cfd *context_fd, int input_number)
 
     /* write the response */
     sprintf(buffer, "HTTP/1.0 200 OK\r\n" \
+            "Access-Control-Allow-Origin: *\r\n" \
             STD_HEADER \
             "Content-type: image/jpeg\r\n" \
             "X-Timestamp: %d.%06d\r\n" \
@@ -1574,7 +1574,6 @@ void *server_thread(void *arg)
                 DBG("create thread to handle client that just established a connection\n");
 
                 if(getnameinfo((struct sockaddr *)&client_addr, addr_len, name, sizeof(name), NULL, 0, NI_NUMERICHOST) == 0) {
-                    syslog(LOG_INFO, "serving client: %s\n", name);
                     DBG("serving client: %s\n", name);
                 }
 

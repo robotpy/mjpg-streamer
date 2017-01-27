@@ -47,7 +47,9 @@ Building & Installation
 =======================
 
 You must have cmake installed. You will also probably want to have a development
-version of libjpeg installed. I used libjpeg62-dev.
+version of libjpeg installed. I used libjpeg8-dev. e.g.
+
+    sudo apt-get install cmake libjpeg8-dev
 
 Simple compilation
 ------------------
@@ -89,6 +91,11 @@ export LD_LIBRARY_PATH=.
 
 See [README.md](mjpg-streamer-experimental/README.md) or the individual plugin's documentation for more details.
 
+Discussion / Questions / Help
+=============================
+
+Probably best in this thread
+http://www.raspberrypi.org/phpBB3/viewtopic.php?f=43&t=45178
 
 Authors
 =======

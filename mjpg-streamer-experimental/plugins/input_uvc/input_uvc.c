@@ -176,6 +176,8 @@ int input_init(input_parameter *param, int id)
             {"fps", required_argument, 0, 0},
             {"y", no_argument, 0, 0},
             {"yuv", no_argument, 0, 0},
+            {"u", no_argument, 0, 0},
+            {"uyvy", no_argument, 0, 0},
             {"q", required_argument, 0, 0},
             {"quality", required_argument, 0, 0},
             {"m", required_argument, 0, 0},
@@ -186,7 +188,7 @@ int input_init(input_parameter *param, int id)
             {"led", required_argument, 0, 0},
             {"fourcc", required_argument, 0, 0},
             {"t", required_argument, 0, 0 },
-	        {"tvnorm", required_argument, 0, 0 },
+            {"tvnorm", required_argument, 0, 0 },
             {"e", required_argument, 0, 0},
             {"every_frame", required_argument, 0, 0},
             {"sh", required_argument, 0, 0},
@@ -232,7 +234,7 @@ int input_init(input_parameter *param, int id)
         case 2:
         case 3:
             DBG("case 2,3\n");
-            dev = canonicalize_file_name(optarg);
+            dev = realpath(optarg, NULL);
             break;
 
         /* r, resolution */
@@ -257,31 +259,39 @@ int input_init(input_parameter *param, int id)
             format = V4L2_PIX_FMT_YUYV;
             break;
         #endif
-        /* q, quality */
+	/* u, uyvy */
         #ifndef NO_LIBJPEG
         case 10:
-        OPTION_INT(11, quality)
+        case 11:
+            DBG("case 10,11\n");
+            format = V4L2_PIX_FMT_UYVY;
+            break;
+        #endif
+        /* q, quality */
+        #ifndef NO_LIBJPEG
+        case 12:
+        OPTION_INT(13, quality)
             settings->quality = MIN(MAX(settings->quality, 0), 100);
             break;
         #endif
         /* m, minimum_size */
-        case 12:
-        case 13:
-            DBG("case 12,13\n");
+        case 14:
+        case 15:
+            DBG("case 14,15\n");
             minimum_size = MAX(atoi(optarg), 0);
             break;
 
         /* n, no_dynctrl */
-        case 14:
-        case 15:
-            DBG("case 14,15\n");
+        case 16:
+        case 17:
+            DBG("case 16,17\n");
             dynctrls = 0;
             break;
 
             /* l, led */
-        case 16:
-        case 17:/*
-        DBG("case 16,17\n");
+        case 18:
+        case 19:/*
+        DBG("case 18,19\n");
         if ( strcmp("on", optarg) == 0 ) {
           led = IN_CMD_LED_ON;
         } else if ( strcmp("off", optarg) == 0 ) {
@@ -294,19 +304,19 @@ int input_init(input_parameter *param, int id)
             break;
         /* fourcc */
         #ifndef NO_LIBJPEG
-        case 18:
-            DBG("case 18,19\n");
+        case 20:
+            DBG("case 20\n");
             if (strcmp(optarg, "RGBP") == 0) {
                 format = V4L2_PIX_FMT_RGB565;
             } else {
-                DBG("FOURCC %s not supported\n", optarg);
+              fprintf(stderr," i: FOURCC codec '%s' not supported\n", optarg);
             }
             break;
         #endif
         /* t, tvnorm */
-        case 19:
-        case 20:
-            DBG("case 19,20\n");
+        case 21:
+        case 22:
+            DBG("case 21,22\n");
             if (strcasecmp("pal",optarg) == 0 ) {
 	             tvnorm = V4L2_STD_PAL;
             } else if ( strcasecmp("ntsc",optarg) == 0 ) {
@@ -315,41 +325,41 @@ int input_init(input_parameter *param, int id)
 	             tvnorm = V4L2_STD_SECAM;
             }
             break;
-        case 21:
+        case 23:
         /* e, every */
-        case 22:
-            DBG("case 21,22\n");
+        case 24:
+            DBG("case 24\n");
             every = MAX(atoi(optarg), 1);
             break;
 
         /* options */
-        OPTION_INT(23, sh)
+        OPTION_INT(25, sh)
             break;
-        OPTION_INT(24, co)
+        OPTION_INT(26, co)
             break;
-        OPTION_INT_AUTO(25, br)
+        OPTION_INT_AUTO(27, br)
             break;
-        OPTION_INT(26, sa)
+        OPTION_INT(28, sa)
             break;
-        OPTION_INT_AUTO(27, wb)
+        OPTION_INT_AUTO(29, wb)
             break;
-        OPTION_MULTI_OR_INT(28, ex_auto, V4L2_EXPOSURE_MANUAL, ex, exposures)
+        OPTION_MULTI_OR_INT(30, ex_auto, V4L2_EXPOSURE_MANUAL, ex, exposures)
             break;
-        OPTION_INT(29, bk)
+        OPTION_INT(31, bk)
             break;
-        OPTION_INT(30, rot)
+        OPTION_INT(32, rot)
             break;
-        OPTION_BOOL(31, hf)
+        OPTION_BOOL(33, hf)
             break;
-        OPTION_BOOL(32, vf)
+        OPTION_BOOL(34, vf)
             break;
-        OPTION_MULTI(33, pl, power_line)
+        OPTION_MULTI(35, pl, power_line)
             break;
-        OPTION_INT_AUTO(34, gain)
+        OPTION_INT_AUTO(36, gain)
             break;
-        OPTION_INT_AUTO(35, cagc)
+        OPTION_INT_AUTO(37, cagc)
             break;
-        OPTION_INT_AUTO(36, cb)
+        OPTION_INT_AUTO(38, cb)
             break;
     
         default:
@@ -378,9 +388,12 @@ int input_init(input_parameter *param, int id)
         case V4L2_PIX_FMT_MJPEG:
             fmtString = "JPEG";
             break;
-        #ifndef NI_LIBJPG
+        #ifndef NO_LIBJPG
             case V4L2_PIX_FMT_YUYV:
                 fmtString = "YUYV";
+                break;
+            case V4L2_PIX_FMT_UYVY:
+                fmtString = "UYVY";
                 break;
             case V4L2_PIX_FMT_RGB565:
                 fmtString = "RGB565";
@@ -492,10 +505,14 @@ void help(void)
     " [-n | --no_dynctrl ]...: do not initalize dynctrls of Linux-UVC driver\n" \
     " [-l | --led ]..........: switch the LED \"on\", \"off\", let it \"blink\" or leave\n" \
     "                          it up to the driver using the value \"auto\"\n" \
-    " [-t | --tvnorm ] ......: set TV-Norm pal, ntsc or secam\n"
+    " [-t | --tvnorm ] ......: set TV-Norm pal, ntsc or secam\n" \
+    " [-u | --uyvy ] ........: Use UYVY format, default: MJPEG (uses more cpu power)\n" \
+    " [-y | --yuv  ] ........: Use YUV format, default: MJPEG (uses more cpu power)\n" \
+    " [-fourcc ] ............: Use FOURCC codec 'argopt', \n" \
+    "                          currently supported codecs are: RGBP \n" \
     " ---------------------------------------------------------------\n");
 
-    fprintf(stderr, "\n"\
+    fprintf(stderr, "\n"                                                \
     " Optional parameters (may not be supported by all cameras):\n\n"
     " [-br ].................: Set image brightness (auto or integer)\n"\
     " [-co ].................: Set image contrast (integer)\n"\
@@ -624,7 +641,7 @@ void *cam_thread(void *arg)
             every_count = 0;
         }
 
-        //DBG("received frame of size: %d from plugin: %d\n", pcontext->videoIn->buf.bytesused, pcontext->id);
+        //DBG("received frame of size: %d from plugin: %d\n", pcontext->videoIn->tmpbytesused, pcontext->id);
 
         /*
          * Workaround for broken, corrupted frames:
@@ -633,7 +650,7 @@ void *cam_thread(void *arg)
          * For example a VGA (640x480) webcam picture is normally >= 8kByte large,
          * corrupted frames are smaller.
          */
-        if(pcontext->videoIn->buf.bytesused < minimum_size) {
+        if(pcontext->videoIn->tmpbytesused < minimum_size) {
             DBG("dropping too small frame, assuming it as broken\n");
             continue;
         }
@@ -663,7 +680,9 @@ void *cam_thread(void *arg)
          * Linux-UVC compatible devices.
          */
         #ifndef NO_LIBJPEG
-        if ((pcontext->videoIn->formatIn == V4L2_PIX_FMT_YUYV) || (pcontext->videoIn->formatIn == V4L2_PIX_FMT_RGB565)) {
+        if ((pcontext->videoIn->formatIn == V4L2_PIX_FMT_YUYV) ||
+	    (pcontext->videoIn->formatIn == V4L2_PIX_FMT_UYVY) ||
+	    (pcontext->videoIn->formatIn == V4L2_PIX_FMT_RGB565) ) {
             DBG("compressing frame from input: %d\n", (int)pcontext->id);
             pglobal->in[pcontext->id].size = compress_image_to_jpeg(pcontext->videoIn, pglobal->in[pcontext->id].buf, pcontext->videoIn->framesizeIn, quality);
             /* copy this frame's timestamp to user space */

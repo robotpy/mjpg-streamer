@@ -83,7 +83,10 @@ static int height = 480;
 static int quality = 85;
 static int usestills = 0;
 static int wantPreview = 0;
+static int wantTimestamp = 0;
 static RASPICAM_CAMERA_PARAMETERS c_params;
+
+static struct timeval timestamp;
 
 /** Struct used to pass information in encoder port userdata to callback
  */
@@ -129,32 +132,38 @@ int input_init(input_parameter *param, int plugin_no)
   while(1) {
     int option_index = 0, c = 0;
     static struct option long_options[] = {
-      {"h", no_argument, 0, 0},
-      {"help", no_argument, 0, 0},
-      {"x", required_argument, 0, 0},
-      {"width", required_argument, 0, 0},
-      {"y", required_argument, 0, 0},
-      {"height", required_argument, 0, 0},
-      {"fps", required_argument, 0, 0},
-      {"framerate", required_argument, 0, 0},
-      {"sh", required_argument, 0, 0},
-      {"co", required_argument, 0, 0},
-      {"br", required_argument, 0, 0},
-      {"sa", required_argument, 0, 0},
-      {"ISO", required_argument, 0, 0},
-      {"vs", no_argument, 0, 0},
-      {"ev", required_argument, 0, 0},
-      {"ex", required_argument, 0, 0},
-      {"awb", required_argument, 0, 0},
-      {"ifx", required_argument, 0, 0},
-      {"cfx", required_argument, 0, 0},
-      {"mm", required_argument, 0, 0},
-      {"rot", required_argument, 0, 0},
-      {"hf", no_argument, 0, 0},
-      {"vf", no_argument, 0, 0},
-      {"quality", required_argument, 0, 0},
-      {"usestills", no_argument, 0, 0},
-      {"preview", no_argument, 0, 0},
+      {"h", no_argument, 0, 0},                       // 0
+      {"help", no_argument, 0, 0},                    // 1
+      {"x", required_argument, 0, 0},                 // 2
+      {"width", required_argument, 0, 0},             // 3
+      {"y", required_argument, 0, 0},                 // 4
+      {"height", required_argument, 0, 0},            // 5
+      {"fps", required_argument, 0, 0},               // 6
+      {"framerate", required_argument, 0, 0},         // 7
+      {"sh", required_argument, 0, 0},                // 8
+      {"co", required_argument, 0, 0},                // 9
+      {"br", required_argument, 0, 0},                // 10
+      {"sa", required_argument, 0, 0},                // 11
+      {"ISO", required_argument, 0, 0},               // 12
+      {"vs", no_argument, 0, 0},                      // 13
+      {"ev", required_argument, 0, 0},                // 14
+      {"ex", required_argument, 0, 0},                // 15
+      {"awb", required_argument, 0, 0},               // 16
+      {"ifx", required_argument, 0, 0},               // 17
+      {"cfx", required_argument, 0, 0},               // 18
+      {"mm", required_argument, 0, 0},                // 19
+      {"rot", required_argument, 0, 0},               // 20
+      {"hf", no_argument, 0, 0},                      // 21
+      {"vf", no_argument, 0, 0},                      // 22
+      {"quality", required_argument, 0, 0},           // 23
+      {"usestills", no_argument, 0, 0},               // 24
+      {"preview", no_argument, 0, 0},                 // 25
+      {"timestamp", no_argument, 0, 0},               // 26
+      {"stats", no_argument, 0, 0},                   // 27
+      {"drc", required_argument, 0, 0},               // 28
+      {"shutter", required_argument, 0, 0},           // 29
+      {"awbgainR", required_argument, 0, 0},          // 30
+      {"awbgainB", required_argument, 0, 0},          // 31
       {0, 0, 0, 0}
     };
 
@@ -270,6 +279,30 @@ int input_init(input_parameter *param, int plugin_no)
         //display preview
         wantPreview = 1;
         break;
+      case 26:
+        //timestamp
+        wantTimestamp = 1;
+        break;
+      case 27:
+        // use stats
+        c_params.stats_pass = MMAL_TRUE;
+        break;
+      case 28:
+        // Dynamic Range Compensation DRC
+        c_params.drc_level = drc_mode_from_string(optarg);
+        break;
+      case 29:
+        // shutter speed in microseconds
+        sscanf(optarg, "%d", &c_params.shutter_speed);
+        break;
+      case 30:
+        // awb gain red
+        sscanf(optarg, "%f", &c_params.awb_gains_r);
+        break;
+      case 31:
+        // awb gain blue
+        sscanf(optarg, "%f", &c_params.awb_gains_b);
+        break;
       default:
         DBG("default case\n");
         help();
@@ -361,12 +394,23 @@ static void encoder_buffer_callback(MMAL_PORT_T *port, MMAL_BUFFER_HEADER_T *buf
     // Now flag if we have completed
     if (buffer->flags & (MMAL_BUFFER_HEADER_FLAG_FRAME_END | MMAL_BUFFER_HEADER_FLAG_TRANSMISSION_FAILED))
     {
-      complete = 1;
+      //set frame size
       pglobal->in[plugin_number].size = pData->offset;
+
+      //Set frame timestamp
+      if(wantTimestamp)
+      {
+        gettimeofday(&timestamp, NULL);
+        pglobal->in[plugin_number].timestamp = timestamp;
+      }
+
+      //mark frame complete
+      complete = 1;
+
       pData->offset = 0;
       /* signal fresh_frame */
       pthread_cond_broadcast(&pglobal->in[plugin_number].db_update);
-      pthread_mutex_unlock(&pglobal->in[plugin_number].db); 
+      pthread_mutex_unlock(&pglobal->in[plugin_number].db);
     }
   }
   else
@@ -502,7 +546,7 @@ void help(void)
       " [-quality].............: set JPEG quality 0-100, default 85 \n"\
       " [-usestills]...........: uses stills mode instead of video mode \n"\
       " [-preview].............: Enable full screen preview\n"\
-
+      " [-timestamp]...........: Get timestamp for each frame\n"
       " \n"\
       " -sh  : Set image sharpness (-100 to 100)\n"\
       " -co  : Set image contrast (-100 to 100)\n"\
@@ -517,6 +561,8 @@ void help(void)
       " -cfx : Set colour effect (U:V)\n"\
       " -mm  : Set metering mode (see raspistill notes)\n"\
       " -rot : Set image rotation (0-359)\n"\
+      " -stats : Compute image stats for each picture (reduces noise for -usestills)\n"\
+      " -drc : Dynamic range compensation level (see raspistill notes)\n"\
       " -hf  : Set horizontal flip\n"\
       " -vf  : Set vertical flip\n"\
       " ---------------------------------------------------------------\n");
@@ -938,7 +984,7 @@ void *worker_thread(void *arg)
       frames++;
       if (frames == 100)
       {
-        //calculate fps      
+        //calculate fps
         clock_gettime(CLOCK_MONOTONIC, &t_finish);
         t_elapsed = (t_finish.tv_sec - t_start.tv_sec);
         t_elapsed += (t_finish.tv_nsec - t_start.tv_nsec) / 1000000000.0;
@@ -948,7 +994,7 @@ void *worker_thread(void *arg)
       }
     }
 
-  } 
+  }
   else
   { //if(usestills)
     //Video Mode
